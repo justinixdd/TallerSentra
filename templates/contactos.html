@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block titulo %} ¡Contactanos! {% endblock %}
+{% block content %}
+   <main>
+      <section id="contact-us">
+         <div class="contact-container">
+           <h1>Contáctenos</h1>
+           <div class="contact-content">
+             <div class="contact-info">
+               <h2>Información de Contacto</h2>
+               <ul>
+                 <li><i class="fa fa-phone"></i> Teléfono: <a href="tel:2230-5222">2230-5232</a></li>
+                 <li><i class="fa fa-envelope"></i> Correo: <a href="TallerSentra@sentra.com">sentra@sentra.com</a></li>
+                 <li><i class="fa fa-map-marker"></i> Dirección: Calle Principal, Aserrí, Costa Rica</li>
+               </ul>
+             </div>
+       
+             <div class="contact-form">
+               <h2>Envíenos un Mensaje</h2>
+               <form action="{{ url_for('contactos')}}" method="POST" id="contact-form">
+                 <div class="form-group">
+                   <input type="text"  name="name" placeholder="Nombre Completo" required>
+                 </div>
+                 <div class="form-group">
+                   <input type="email"  name="email" placeholder="Correo Electrónico" required>
+                 </div>
+                 <div class="form-group">
+                   <textarea name="message" placeholder="Escriba su mensaje" rows="5" required></textarea>
+                 </div>
+                 <button class="info-button" type="submit">Enviar Mensaje</button>
+               </form>
+             </div>
+           </div>
+       
+
+         </div>
+       </section>
+       
+   </main>
+{% endblock %}
+  
