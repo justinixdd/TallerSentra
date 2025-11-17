@@ -209,6 +209,45 @@ def perfil():
     return render_template("perfil.html", username=user_username, buys=user_buys)
 
 # =============================
+# FINALIZAR COMPRA
+# =============================
+
+@app.route('/finalizar_compra', methods=['POST'])
+def finalizar_compra():
+    if 'user' not in session:
+        return {"status": "error", "message": "Debes iniciar sesión."}, 401
+
+    data = request.json
+    carrito = data.get("carrito", [])
+
+    if not carrito:
+        return {"status": "error", "message": "Carrito vacío."}, 400
+
+    # Crear compra
+    compra = {
+        "usuario": session["user"],
+        "productos": carrito,
+        "total": sum(item["price"] for item in carrito),
+        "fecha": datetime.now()
+    }
+
+    buys_collection.insert_one(compra)
+
+    # Reducir stock de cada producto
+    for item in carrito:
+        nombre = item["name"]
+        piezas_collection.update_one(
+            {"nombre": nombre},
+            {"$inc": {"cantidad": -1}}
+        )
+        servicios_collection.update_one(
+            {"nombre": nombre},
+            {"$inc": {"cantidad": -1}}
+        )
+
+    return {"status": "success", "message": "Compra registrada correctamente."}, 200
+
+# =============================
 # Login / Registro
 # =============================
 @app.route("/login", methods=["GET", "POST"])
@@ -274,3 +313,4 @@ def inject_user():
 # =============================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8500)), debug=True)
+
