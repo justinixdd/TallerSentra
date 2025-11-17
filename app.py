@@ -4,6 +4,7 @@ from bson.objectid import ObjectId
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
+from datetime import datetime
 import os
 
 # =============================
@@ -209,9 +210,8 @@ def perfil():
     return render_template("perfil.html", username=user_username, buys=user_buys)
 
 # =============================
-# FINALIZAR COMPRA
+# FINALIZAR COMPRA (CORREGIDO)
 # =============================
-
 @app.route('/finalizar_compra', methods=['POST'])
 def finalizar_compra():
     if 'user' not in session:
@@ -223,27 +223,31 @@ def finalizar_compra():
     if not carrito:
         return {"status": "error", "message": "Carrito vacío."}, 400
 
-    # Crear compra
+    # Crear compra con cantidades multiplicadas
     compra = {
         "usuario": session["user"],
         "productos": carrito,
-        "total": sum(item["price"] for item in carrito),
+        "total": sum(item["price"] * item["quantity"] for item in carrito),
         "fecha": datetime.now()
     }
 
     buys_collection.insert_one(compra)
 
-    # Reducir stock de cada producto
+    # Reducir stock correctamente
     for item in carrito:
         nombre = item["name"]
-        piezas_collection.update_one(
-            {"nombre": nombre},
-            {"$inc": {"cantidad": -1}}
-        )
-        servicios_collection.update_one(
-            {"nombre": nombre},
-            {"$inc": {"cantidad": -1}}
-        )
+        cantidad = item["quantity"]
+
+        if piezas_collection.find_one({"nombre": nombre}):
+            piezas_collection.update_one(
+                {"nombre": nombre},
+                {"$inc": {"cantidad": -cantidad}}
+            )
+        elif servicios_collection.find_one({"nombre": nombre}):
+            servicios_collection.update_one(
+                {"nombre": nombre},
+                {"$inc": {"cantidad": -cantidad}}
+            )
 
     return {"status": "success", "message": "Compra registrada correctamente."}, 200
 
@@ -313,4 +317,3 @@ def inject_user():
 # =============================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8500)), debug=True)
-
